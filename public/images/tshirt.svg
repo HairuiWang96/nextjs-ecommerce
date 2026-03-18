@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#F0FDF4" rx="12"/>
+  <g transform="translate(100, 70)">
+    <!-- T-shirt body -->
+    <path d="M60,0 L0,50 L30,70 L30,200 L170,200 L170,70 L200,50 L140,0 Q120,30 100,30 Q80,30 60,0 Z" fill="#22C55E"/>
+    <!-- Collar -->
+    <path d="M60,0 Q80,25 100,25 Q120,25 140,0" fill="none" stroke="#16A34A" stroke-width="4"/>
+    <!-- Sleeve lines -->
+    <line x1="30" y1="55" x2="5" y2="45" stroke="#16A34A" stroke-width="3"/>
+    <line x1="170" y1="55" x2="195" y2="45" stroke="#16A34A" stroke-width="3"/>
+    <!-- Organic badge -->
+    <circle cx="100" cy="120" r="25" fill="#16A34A" opacity="0.3"/>
+    <text x="100" y="125" text-anchor="middle" font-family="system-ui" font-size="12" fill="#fff" font-weight="600">ECO</text>
+  </g>
+  <text x="200" y="340" text-anchor="middle" font-family="system-ui" font-size="16" fill="#16A34A" font-weight="600">Organic Cotton T-Shirt</text>
+</svg>

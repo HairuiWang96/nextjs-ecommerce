@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#EEF2FF" rx="12"/>
+  <g transform="translate(120, 80)">
+    <!-- Headband -->
+    <path d="M20,160 Q20,40 80,40 Q140,40 140,160" fill="none" stroke="#4F46E5" stroke-width="12" stroke-linecap="round"/>
+    <!-- Left ear cup -->
+    <rect x="0" y="140" width="50" height="70" rx="14" fill="#4F46E5"/>
+    <rect x="8" y="150" width="34" height="50" rx="10" fill="#818CF8"/>
+    <!-- Right ear cup -->
+    <rect x="110" y="140" width="50" height="70" rx="14" fill="#4F46E5"/>
+    <rect x="118" y="150" width="34" height="50" rx="10" fill="#818CF8"/>
+    <!-- Cushion lines -->
+    <line x1="15" y1="165" x2="35" y2="165" stroke="#C7D2FE" stroke-width="2"/>
+    <line x1="15" y1="175" x2="35" y2="175" stroke="#C7D2FE" stroke-width="2"/>
+    <line x1="15" y1="185" x2="35" y2="185" stroke="#C7D2FE" stroke-width="2"/>
+    <line x1="125" y1="165" x2="145" y2="165" stroke="#C7D2FE" stroke-width="2"/>
+    <line x1="125" y1="175" x2="145" y2="175" stroke="#C7D2FE" stroke-width="2"/>
+    <line x1="125" y1="185" x2="145" y2="185" stroke="#C7D2FE" stroke-width="2"/>
+  </g>
+  <text x="200" y="340" text-anchor="middle" font-family="system-ui" font-size="16" fill="#6366F1" font-weight="600">Wireless Headphones</text>
+</svg>
