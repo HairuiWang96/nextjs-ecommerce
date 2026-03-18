@@ -45,10 +45,12 @@ export const apiClient = {
   get: <T>(endpoint: string): Promise<ApiResponse<T>> =>
     request<T>(endpoint),
 
-  post: <T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> =>
+  // PATTERN: Optional extra RequestInit for custom headers (e.g., Idempotency-Key)
+  post: <T>(endpoint: string, body: unknown, options?: RequestInit): Promise<ApiResponse<T>> =>
     request<T>(endpoint, {
       method: "POST",
       body: JSON.stringify(body),
+      ...options,
     }),
 
   put: <T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> =>

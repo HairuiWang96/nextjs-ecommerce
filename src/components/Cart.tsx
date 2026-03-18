@@ -1,18 +1,51 @@
 // ============================================================
 // Cart Component
-// PATTERNS: Context consumer, derived state, optimistic UI
+// PATTERNS: Context consumer, derived state, promo code UI
 // ============================================================
 
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
-import { formatCurrency } from "@/lib/formatters";
-import { pluralize } from "@/lib/formatters";
+import { formatCurrency, pluralize } from "@/lib/formatters";
 
 export function CartView() {
-  const { cart, loading, error, updateItemQuantity, removeItem } = useCart();
+  const {
+    cart,
+    loading,
+    error,
+    updateItemQuantity,
+    removeItem,
+    applyPromoCode,
+    removePromoCode,
+    clearError,
+  } = useCart();
+
+  // PATTERN: Local state for the promo code input (not global — only needed here)
+  const [promoInput, setPromoInput] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoSuccess, setPromoSuccess] = useState(false);
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    setPromoSuccess(false);
+    clearError();
+
+    const success = await applyPromoCode(promoInput.trim());
+    if (success) {
+      setPromoSuccess(true);
+      setPromoInput("");
+    }
+    setPromoLoading(false);
+  };
+
+  const handleRemovePromo = async () => {
+    await removePromoCode();
+    setPromoSuccess(false);
+  };
 
   if (loading) {
     return <div className="text-center py-12 text-gray-500">Loading cart...</div>;
@@ -125,6 +158,54 @@ export function CartView() {
         ))}
       </div>
 
+      {/* Promo Code Section */}
+      <div className="border rounded-lg p-4 mb-6">
+        <h3 className="font-medium mb-3">Promo Code</h3>
+        {cart.couponCode ? (
+          // Applied promo code display
+          <div className="flex items-center justify-between bg-green-50 rounded p-3">
+            <div>
+              <span className="text-green-700 font-medium">{cart.couponCode}</span>
+              <span className="text-green-600 text-sm ml-2">Applied!</span>
+            </div>
+            <button
+              onClick={handleRemovePromo}
+              className="text-red-500 text-sm hover:text-red-700"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          // Promo code input
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={promoInput}
+              onChange={(e) => setPromoInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
+              placeholder="Enter promo code (e.g., SAVE10)"
+              className="flex-1 border rounded px-3 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleApplyPromo}
+              disabled={promoLoading || !promoInput.trim()}
+              className="bg-gray-800 text-white rounded px-4 py-2 text-sm font-medium
+                         hover:bg-gray-900 disabled:bg-gray-300 disabled:cursor-not-allowed
+                         transition-colors"
+            >
+              {promoLoading ? "Applying..." : "Apply"}
+            </button>
+          </div>
+        )}
+        {promoSuccess && !cart.couponCode && (
+          <p className="text-green-600 text-xs mt-2">Promo code applied!</p>
+        )}
+        <p className="text-gray-400 text-xs mt-2">
+          Try: SAVE10, SAVE20, FLAT5, FREESHIP
+        </p>
+      </div>
+
       {/* Cart Totals */}
       <div className="border-t pt-6 space-y-2">
         <div className="flex justify-between text-sm">
@@ -133,7 +214,7 @@ export function CartView() {
         </div>
         {cart.totals.discount > 0 && (
           <div className="flex justify-between text-sm text-green-600">
-            <span>Discount</span>
+            <span>Discount {cart.couponCode && `(${cart.couponCode})`}</span>
             <span>-{formatCurrency(cart.totals.discount)}</span>
           </div>
         )}

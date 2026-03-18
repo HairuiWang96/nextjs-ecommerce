@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Phoenix Store — Mini Ecommerce",
-  description: "Practice ecommerce app for live coding interview",
+  title: "Next.js Ecommerce",
+  description: "Full-stack ecommerce app built with Next.js, React, and TypeScript",
 };
 
 export default function RootLayout({

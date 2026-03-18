@@ -1,6 +1,7 @@
 // ============================================================
 // CheckoutForm Component
-// PATTERNS: Multi-step form, controlled inputs, form validation
+// PATTERNS: Multi-step form, field-level validation on blur,
+//           idempotent submission, failure recovery with retry
 // ============================================================
 
 "use client";
@@ -8,34 +9,83 @@
 import { useCheckout, CheckoutStep } from "@/hooks/useCheckout";
 import { useCart } from "@/hooks/useCart";
 import { formatCurrency } from "@/lib/formatters";
-import { isValidEmail, isValidPostalCode } from "@/lib/validators";
 import { OrderConfirmation } from "./OrderSummary";
+
+// PATTERN: Reusable form field component with error display
+// Keeps the main form JSX clean and consistent
+function FormField({
+  label,
+  required,
+  error,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1">
+        {label} {required && "*"}
+      </label>
+      {children}
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
+  );
+}
 
 export function CheckoutForm() {
   const {
     step,
     formData,
+    errors,
     order,
     error,
+    attemptCount,
     updateShippingAddress,
     updateFormData,
+    validateField,
+    validateShippingForm,
     nextStep,
     prevStep,
+    goToStep,
     submitOrder,
+    retryOrder,
     reset,
   } = useCheckout();
 
   const { cart, refetch } = useCart();
 
-  // PATTERN: Form submission handler
+  // PATTERN: Validate before advancing to next step
+  const handleContinueToPayment = () => {
+    if (validateShippingForm()) {
+      nextStep();
+    }
+  };
+
+  // PATTERN: Submit with idempotency — double-click safe
   const handleSubmitOrder = async () => {
     if (!cart) return;
     await submitOrder(cart.id);
     await refetch(); // refresh cart (should be empty after checkout)
   };
 
-  // PATTERN: Step-based rendering with switch
-  // Each step is a self-contained section of the form
+  // PATTERN: Retry preserves cart — uses new idempotency key
+  const handleRetry = async () => {
+    if (!cart) return;
+    await retryOrder(cart.id);
+    await refetch();
+  };
+
+  // PATTERN: Helper for input className with error state
+  const inputClass = (field: string) =>
+    `w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+      errors[field]
+        ? "border-red-400 focus:ring-red-500"
+        : "focus:ring-blue-500"
+    }`;
+
   switch (step) {
     case CheckoutStep.SHIPPING:
       return (
@@ -44,138 +94,102 @@ export function CheckoutForm() {
 
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  First Name *
-                </label>
+              <FormField label="First Name" required error={errors.firstName}>
                 <input
                   type="text"
                   value={formData.shippingAddress.firstName}
                   onChange={(e) =>
                     updateShippingAddress({ firstName: e.target.value })
                   }
-                  className="w-full border rounded px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onBlur={() => validateField("firstName")}
+                  className={inputClass("firstName")}
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Last Name *
-                </label>
+              </FormField>
+              <FormField label="Last Name" required error={errors.lastName}>
                 <input
                   type="text"
                   value={formData.shippingAddress.lastName}
                   onChange={(e) =>
                     updateShippingAddress({ lastName: e.target.value })
                   }
-                  className="w-full border rounded px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onBlur={() => validateField("lastName")}
+                  className={inputClass("lastName")}
                 />
-              </div>
+              </FormField>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Email *</label>
+            <FormField label="Email" required error={errors.email}>
               <input
                 type="email"
                 value={formData.customerEmail}
                 onChange={(e) =>
                   updateFormData({ customerEmail: e.target.value })
                 }
-                className="w-full border rounded px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onBlur={() => validateField("email")}
+                className={inputClass("email")}
               />
-              {formData.customerEmail &&
-                !isValidEmail(formData.customerEmail) && (
-                  <p className="text-red-500 text-xs mt-1">
-                    Please enter a valid email
-                  </p>
-                )}
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Address Line 1 *
-              </label>
+            <FormField label="Address Line 1" required error={errors.line1}>
               <input
                 type="text"
                 value={formData.shippingAddress.line1}
                 onChange={(e) =>
                   updateShippingAddress({ line1: e.target.value })
                 }
-                className="w-full border rounded px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onBlur={() => validateField("line1")}
+                className={inputClass("line1")}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Address Line 2
-              </label>
+            <FormField label="Address Line 2">
               <input
                 type="text"
                 value={formData.shippingAddress.line2 || ""}
                 onChange={(e) =>
                   updateShippingAddress({ line2: e.target.value })
                 }
-                className="w-full border rounded px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={inputClass("line2")}
               />
-            </div>
+            </FormField>
 
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">City *</label>
+              <FormField label="City" required error={errors.city}>
                 <input
                   type="text"
                   value={formData.shippingAddress.city}
                   onChange={(e) =>
                     updateShippingAddress({ city: e.target.value })
                   }
-                  className="w-full border rounded px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onBlur={() => validateField("city")}
+                  className={inputClass("city")}
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  State *
-                </label>
+              </FormField>
+              <FormField label="State" required error={errors.state}>
                 <input
                   type="text"
                   value={formData.shippingAddress.state}
                   onChange={(e) =>
                     updateShippingAddress({ state: e.target.value })
                   }
-                  className="w-full border rounded px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onBlur={() => validateField("state")}
+                  className={inputClass("state")}
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Zip Code *
-                </label>
+              </FormField>
+              <FormField label="Zip Code" required error={errors.postalCode}>
                 <input
                   type="text"
                   value={formData.shippingAddress.postalCode}
                   onChange={(e) =>
                     updateShippingAddress({ postalCode: e.target.value })
                   }
-                  className="w-full border rounded px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onBlur={() => validateField("postalCode")}
+                  className={inputClass("postalCode")}
                 />
-                {formData.shippingAddress.postalCode &&
-                  !isValidPostalCode(formData.shippingAddress.postalCode) && (
-                    <p className="text-red-500 text-xs mt-1">
-                      Enter a valid US zip code
-                    </p>
-                  )}
-              </div>
+              </FormField>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Order Notes
-              </label>
+            <FormField label="Order Notes">
               <textarea
                 value={formData.notes}
                 onChange={(e) => updateFormData({ notes: e.target.value })}
@@ -184,25 +198,14 @@ export function CheckoutForm() {
                            focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Any special instructions..."
               />
-            </div>
+            </FormField>
           </div>
 
           <div className="mt-6 flex justify-end">
             <button
-              onClick={nextStep}
-              disabled={
-                !formData.shippingAddress.firstName ||
-                !formData.shippingAddress.lastName ||
-                !formData.shippingAddress.line1 ||
-                !formData.shippingAddress.city ||
-                !formData.shippingAddress.state ||
-                !formData.shippingAddress.postalCode ||
-                !formData.customerEmail ||
-                !isValidEmail(formData.customerEmail)
-              }
+              onClick={handleContinueToPayment}
               className="bg-blue-600 text-white rounded px-6 py-2 font-medium
-                         hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed
-                         transition-colors"
+                         hover:bg-blue-700 transition-colors"
             >
               Continue to Payment
             </button>
@@ -215,7 +218,6 @@ export function CheckoutForm() {
         <div className="max-w-lg mx-auto">
           <h2 className="text-2xl font-bold mb-6">Payment</h2>
 
-          {/* Mock payment — in production this would be Stripe Elements */}
           <div className="border rounded-lg p-6 bg-gray-50 mb-6">
             <p className="text-sm text-gray-600 mb-4">
               This is a mock payment form. In production, you would integrate
@@ -310,6 +312,12 @@ export function CheckoutForm() {
                   <span>{formatCurrency(item.variant.price * item.quantity)}</span>
                 </div>
               ))}
+              {cart.totals.discount > 0 && (
+                <div className="flex justify-between text-sm py-1 text-green-600">
+                  <span>Discount {cart.couponCode && `(${cart.couponCode})`}</span>
+                  <span>-{formatCurrency(cart.totals.discount)}</span>
+                </div>
+              )}
               <div className="border-t mt-2 pt-2 flex justify-between font-bold">
                 <span>Total</span>
                 <span>{formatCurrency(cart.totals.total)}</span>
@@ -340,6 +348,11 @@ export function CheckoutForm() {
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
           <p className="text-gray-600">Processing your order...</p>
+          {attemptCount > 0 && (
+            <p className="text-gray-400 text-sm mt-2">
+              Attempt {attemptCount}
+            </p>
+          )}
         </div>
       );
 
@@ -357,22 +370,25 @@ export function CheckoutForm() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold mb-2">Payment Failed</h2>
-          <p className="text-red-500 mb-6">
+          <p className="text-red-500 mb-2">
             {error || "Something went wrong"}
+          </p>
+          <p className="text-gray-400 text-sm mb-6">
+            Attempt {attemptCount} — your cart has been preserved
           </p>
           <div className="flex gap-4 justify-center">
             <button
-              onClick={reset}
+              onClick={() => goToStep("review")}
               className="border rounded px-6 py-2 text-sm hover:bg-gray-50 transition-colors"
             >
-              Start Over
+              Back to Review
             </button>
-            <a
-              href="/cart"
+            <button
+              onClick={handleRetry}
               className="bg-blue-600 text-white rounded px-6 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
-              Back to Cart
-            </a>
+              Retry Payment
+            </button>
           </div>
         </div>
       );
