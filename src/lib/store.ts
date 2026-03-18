@@ -3,13 +3,51 @@
 // In a real app, this would be Prisma, Drizzle, or raw SQL
 // ============================================================
 
-import type { Product, Cart, Order } from "@/types";
+import type { Product, Cart, Order, Discount } from "@/types";
 
 // PATTERN: Module-level state — persists across requests in dev mode
 // (resets on server restart)
 const products: Map<string, Product> = new Map();
 const carts: Map<string, Cart> = new Map();
 const orders: Map<string, Order> = new Map();
+
+// ============================================================
+// IDEMPOTENCY KEYS — Prevent Double Charges
+// ============================================================
+// PATTERN: Idempotency ensures that repeating the same request
+// (e.g., user double-clicks "Place Order") doesn't create duplicate orders.
+// The client sends a unique key with each checkout request.
+// If we've already processed that key, we return the cached result.
+// In production, this would be stored in Redis with a TTL (e.g., 24 hours).
+const idempotencyKeys: Map<string, Order> = new Map();
+
+export const idempotencyStore = {
+  get: (key: string): Order | undefined => idempotencyKeys.get(key),
+  set: (key: string, order: Order): void => {
+    idempotencyKeys.set(key, order);
+  },
+  has: (key: string): boolean => idempotencyKeys.has(key),
+};
+
+// ============================================================
+// PROMO CODES — Dynamic Pricing
+// ============================================================
+// PATTERN: Typed map with known promo codes and their discount rules
+const promoCodes: Map<string, Discount> = new Map([
+  ["SAVE10", { type: "percentage", value: 10 }],   // 10% off
+  ["FLAT5", { type: "fixed", value: 500 }],         // $5.00 off
+  ["SAVE20", { type: "percentage", value: 20 }],    // 20% off
+  ["FREESHIP", { type: "free_shipping" }],           // free shipping
+]);
+
+export const promoCodeStore = {
+  validate: (code: string): Discount | undefined => {
+    return promoCodes.get(code.toUpperCase());
+  },
+  exists: (code: string): boolean => {
+    return promoCodes.has(code.toUpperCase());
+  },
+};
 
 // Seed some initial products
 function seedProducts() {
@@ -114,6 +152,71 @@ export const productStore = {
     return updated;
   },
   delete: (id: string): boolean => products.delete(id),
+};
+
+// ============================================================
+// INVENTORY MANAGEMENT — Race Condition Protection
+// ============================================================
+// PATTERN: "Reserve then charge" to prevent overselling
+//
+// The problem: Two users both see "5 in stock" and both try to buy 3.
+// Without protection, both succeed → we've sold 6 of 5 items.
+//
+// The solution:
+// 1. reserveInventory() — check stock & deduct BEFORE payment
+// 2. If payment fails → releaseInventory() to restore the stock
+// 3. If payment succeeds → inventory already deducted, done
+//
+// In production with a real DB, you'd use:
+// - SQL: UPDATE ... WHERE inventory >= quantity (atomic compare-and-swap)
+// - Or: SELECT ... FOR UPDATE (pessimistic locking)
+// - Or: Redis DECR with check (for high-throughput)
+
+interface InventoryReservation {
+  productId: string;
+  variantId: string;
+  quantity: number;
+}
+
+export const inventoryManager = {
+  // Reserve inventory — returns success or the item that failed
+  reserve: (items: InventoryReservation[]): { success: true } | { success: false; failedItem: string } => {
+    // First pass: validate ALL items have sufficient stock
+    for (const item of items) {
+      const product = products.get(item.productId);
+      if (!product) return { success: false, failedItem: item.productId };
+
+      const variant = product.variants.find((v) => v.id === item.variantId);
+      if (!variant) return { success: false, failedItem: item.variantId };
+
+      if (variant.inventory < item.quantity) {
+        return {
+          success: false,
+          failedItem: `${product.title} (${variant.name}) — only ${variant.inventory} left`,
+        };
+      }
+    }
+
+    // Second pass: deduct inventory (only after ALL validations pass)
+    for (const item of items) {
+      const product = products.get(item.productId)!;
+      const variant = product.variants.find((v) => v.id === item.variantId)!;
+      variant.inventory -= item.quantity;
+    }
+
+    return { success: true };
+  },
+
+  // Release inventory — undo reservation when payment fails
+  release: (items: InventoryReservation[]): void => {
+    for (const item of items) {
+      const product = products.get(item.productId);
+      if (!product) continue;
+      const variant = product.variants.find((v) => v.id === item.variantId);
+      if (!variant) continue;
+      variant.inventory += item.quantity;
+    }
+  },
 };
 
 // ---- Cart Store ----
