@@ -11,7 +11,7 @@ export function NavBar() {
     <nav className="border-b bg-white sticky top-0 z-10">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-bold text-lg">
-          Phoenix Store
+          Store
         </Link>
 
         <div className="flex items-center gap-6">
