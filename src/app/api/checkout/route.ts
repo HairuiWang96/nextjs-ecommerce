@@ -3,6 +3,30 @@
 // PATTERNS: Idempotency, inventory reservation, payment retry,
 //           transaction-like operations with rollback
 // ============================================================
+//
+// WHAT'S DIFFERENT FROM THE BASIC BRANCH:
+//
+//   BASIC branch checkout (5 steps):
+//     1. Validate cart        — same
+//     2. Validate address     — same
+//     3. Process payment      — simple: one attempt, always succeeds
+//     4. Create order         — same
+//     5. Clear cart           — same
+//
+//   THIS branch checkout (7 steps — adds 3 production-ready patterns):
+//     0. Idempotency check    — NEW: prevents double-charging if user clicks twice
+//     1. Validate cart        — same
+//     2. Validate address     — same
+//     3. Reserve inventory    — NEW: prevents overselling (2 users, 1 item left)
+//     4. Process payment      — UPGRADED: retries up to 3x with exponential backoff
+//        4a. If fails → release inventory (ROLLBACK — undo step 3)
+//     5. Create order         — same
+//     6. Cache idempotency    — NEW: saves order so step 0 can return it on retry
+//     7. Clear cart           — same
+//
+//   This "reserve → try → rollback on failure" pattern is called a SAGA.
+//   It's how real payment systems avoid inconsistent states.
+// ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import {

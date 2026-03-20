@@ -2,8 +2,28 @@
 // Cart Context — Global State Management
 // PATTERNS: Context API, typed Provider, async actions in context
 // ============================================================
+//
+// HOW IT FITS TOGETHER:
+//   CartProvider (this file)     — holds state + API logic
+//     → CartContext              — the "pipe" that carries data down the tree
+//       → useCart() hook         — how components tap into the pipe
+//         → apiClient            — makes HTTP requests to /api/cart
+//           → API route handlers — server-side logic (Next.js route handlers)
+//
+// WHAT'S DIFFERENT FROM THE BASIC BRANCH:
+//   basic branch:   addItem, updateItemQuantity, removeItem, clearError, refetch
+//   this branch:    all of the above PLUS applyPromoCode and removePromoCode
+//
+//   The promo code actions follow the same pattern as the other actions
+//   (clear error → call API → update cart or set error) but use different
+//   endpoints (POST /cart/promo and DELETE /cart/promo).
+//   applyPromoCode also returns a boolean so the UI can show success/failure feedback.
+// ============================================================
 
 "use client";
+// ↑ This directive tells Next.js this is a Client Component.
+// Context, useState, useEffect, etc. only work on the client side.
+// Server Components (the default in Next.js App Router) can't use hooks.
 
 import {
   createContext,
@@ -16,11 +36,16 @@ import { apiClient } from "@/lib/api-client";
 import { isApiSuccess, type Cart, type AddToCartInput } from "@/types";
 
 // PATTERN: Define the context value type as an interface
-// This is what consumers get when they call useCart()
+// This is the "shape" of what any component gets when it calls useCart().
+// It includes both DATA (cart, loading, error) and ACTIONS (addItem, removeItem, etc.).
+// Grouping data + actions together is a common React Context pattern.
 export interface CartContextValue {
-  cart: Cart | null;
-  loading: boolean;
-  error: string | null;
+  // --- Data ---
+  cart: Cart | null;          // null until the first fetch completes
+  loading: boolean;           // true while fetching cart from the API
+  error: string | null;       // holds error message if an action fails, null otherwise
+
+  // --- Actions (same as basic branch) ---
   addItem: (input: AddToCartInput) => Promise<void>;
   updateItemQuantity: (
     productId: string,
@@ -28,13 +53,22 @@ export interface CartContextValue {
     quantity: number
   ) => Promise<void>;
   removeItem: (productId: string, variantId: string) => Promise<void>;
+  clearError: () => void;     // lets UI dismiss error messages
+  refetch: () => Promise<void>; // re-fetch cart from server (useful after checkout)
+
+  // --- NEW in feature branch: Promo code actions ---
+  // These don't exist in the basic branch.
+  // applyPromoCode returns a boolean so the UI knows if the code was valid.
+  // removePromoCode just strips the discount — no return value needed.
   applyPromoCode: (code: string) => Promise<boolean>;
   removePromoCode: () => Promise<void>;
-  clearError: () => void;
-  refetch: () => Promise<void>;
 }
 
 // PATTERN: Create context with `null` default
+// We use null here (not a fake default object) because:
+//   - It forces us to handle the "no provider" case explicitly
+//   - The useCart() hook checks for null and throws a helpful error
+//   - This avoids silent bugs where a component reads stale/empty defaults
 export const CartContext = createContext<CartContextValue | null>(null);
 
 // PATTERN: Provider component with typed props
@@ -105,6 +139,16 @@ export function CartProvider({ children }: CartProviderProps) {
     []
   );
 
+  // ============================================================
+  // NEW IN FEATURE BRANCH: Promo code actions
+  // ============================================================
+  // These don't exist in the basic branch. They follow the same pattern
+  // as addItem/updateItemQuantity (clear error → call API → update cart),
+  // but with two differences:
+  //   1. applyPromoCode returns a boolean (true = code valid, false = invalid)
+  //      so the UI can show "Code applied!" or "Invalid code" feedback
+  //   2. removePromoCode uses DELETE instead of POST/PUT
+  //
   // PATTERN: Promo code actions — returns boolean for UI feedback
   const applyPromoCode = useCallback(async (code: string): Promise<boolean> => {
     setError(null);
@@ -128,6 +172,8 @@ export function CartProvider({ children }: CartProviderProps) {
 
   const clearError = useCallback(() => setError(null), []);
 
+  // Bundle everything into the context value.
+  // This object is what useCart() returns to any consuming component.
   const value: CartContextValue = {
     cart,
     loading,

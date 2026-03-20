@@ -46,6 +46,10 @@ export const apiClient = {
     request<T>(endpoint),
 
   // PATTERN: Optional extra RequestInit for custom headers (e.g., Idempotency-Key)
+  // NEW IN FEATURE BRANCH: the basic branch's post() only takes (endpoint, body).
+  // This version adds an optional 3rd `options` parameter so callers can pass
+  // extra headers. The checkout hook uses this to send the Idempotency-Key header:
+  //   apiClient.post("/checkout", body, { headers: { "Idempotency-Key": "..." } })
   post: <T>(endpoint: string, body: unknown, options?: RequestInit): Promise<ApiResponse<T>> =>
     request<T>(endpoint, {
       method: "POST",

@@ -3,6 +3,31 @@
 // PATTERNS: State machine, field-level validation, idempotency,
 //           failure recovery with retry
 // ============================================================
+//
+// WHAT'S DIFFERENT FROM THE BASIC BRANCH:
+//
+//   BASIC branch useCheckout:
+//     - Simple: just collects form data and submits to /api/checkout
+//     - No step navigation, no field-level validation, no retry
+//
+//   THIS branch useCheckout (much more realistic):
+//     - STATE MACHINE: checkout moves through steps
+//       shipping → payment → review → processing → complete (or error)
+//       The user can go forward/back between steps.
+//
+//     - FIELD-LEVEL VALIDATION: validates individual fields on blur
+//       (e.g., shows "Email is required" as soon as you tab out of the field)
+//       instead of waiting until you hit submit.
+//
+//     - IDEMPOTENCY KEY: generates a UUID per checkout attempt.
+//       Sent as a header so the server won't charge twice if the user
+//       double-clicks "Place Order" or retries after a network error.
+//       Uses useRef (not useState) so it doesn't cause re-renders.
+//
+//     - RETRY: if payment fails, the user can retry with a NEW idempotency key.
+//       The old key might be cached as "in progress" on the server, so we
+//       generate a fresh one for each retry attempt.
+// ============================================================
 
 "use client";
 
@@ -12,6 +37,11 @@ import { isApiSuccess, type Order, type ShippingAddress } from "@/types";
 import { isValidEmail, isValidPostalCode } from "@/lib/validators";
 
 // PATTERN: Const object for checkout steps (state machine states)
+// A state machine means the checkout can only be in ONE of these states at a time.
+// This prevents impossible states like "processing + showing shipping form."
+//
+// The flow:  shipping → payment → review → processing → complete
+//                                                    ↘ error → (retry) → processing
 export const CheckoutStep = {
   SHIPPING: "shipping",
   PAYMENT: "payment",
@@ -85,7 +115,16 @@ export function useCheckout(): UseCheckoutReturn {
   const [attemptCount, setAttemptCount] = useState(0);
 
   // PATTERN: useRef for the idempotency key — persists across renders
-  // without causing re-renders (unlike useState)
+  // without causing re-renders (unlike useState).
+  //
+  // WHY useRef instead of useState?
+  //   - useState would cause a re-render when we set a new key (wasteful)
+  //   - useRef stores the value silently — we only read it when submitting
+  //   - The UI never displays the idempotency key, so no re-render needed
+  //
+  // WHY crypto.randomUUID()?
+  //   - Generates a unique ID like "550e8400-e29b-41d4-a716-446655440000"
+  //   - Guaranteed unique — safe to use as a "this is the same request" identifier
   const idempotencyKeyRef = useRef<string>(crypto.randomUUID());
 
   // ============================================================
