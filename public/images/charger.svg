@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#F0F9FF" rx="12"/>
+  <g transform="translate(120, 110)">
+    <!-- Pad base -->
+    <ellipse cx="80" cy="120" rx="80" ry="20" fill="#0284C7"/>
+    <ellipse cx="80" cy="115" rx="80" ry="20" fill="#0EA5E9"/>
+    <!-- Pad top surface -->
+    <ellipse cx="80" cy="100" rx="72" ry="16" fill="#38BDF8"/>
+    <!-- Qi symbol -->
+    <path d="M60,95 Q65,80 80,80 Q95,80 100,95" fill="none" stroke="#BAE6FD" stroke-width="3" stroke-linecap="round"/>
+    <path d="M65,98 Q70,87 80,87 Q90,87 95,98" fill="none" stroke="#BAE6FD" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="80" cy="100" r="3" fill="#BAE6FD"/>
+    <!-- LED indicator -->
+    <circle cx="80" cy="112" r="3" fill="#22D3EE"/>
+    <circle cx="80" cy="112" r="6" fill="#22D3EE" opacity="0.3"/>
+    <!-- Cable -->
+    <path d="M80,120 Q80,150 60,160" fill="none" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <text x="200" y="320" text-anchor="middle" font-family="system-ui" font-size="16" fill="#0284C7" font-weight="600">Wireless Charger</text>
+</svg>

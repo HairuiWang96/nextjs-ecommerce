@@ -49,7 +49,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
             {/* Product Info */}
             <h3 className='font-semibold text-lg mb-1'>{product.title}</h3>
-            <p className='text-gray-600 text-sm mb-3 line-clamp-2'>{product.description}</p>
+            <p className='text-gray-600 text-sm mb-3 line-clamp-2 min-h-[2.5rem]'>{product.description}</p>
 
             {/* Price */}
             <p className='text-xl font-bold text-blue-600 mb-3'>

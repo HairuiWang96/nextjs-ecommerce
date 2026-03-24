@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#FFF7ED" rx="12"/>
+  <g transform="translate(80, 100)">
+    <!-- Rolled mat (side view) -->
+    <ellipse cx="200" cy="100" rx="40" ry="60" fill="#EA580C"/>
+    <ellipse cx="200" cy="100" rx="30" ry="45" fill="#FB923C"/>
+    <ellipse cx="200" cy="100" rx="12" ry="18" fill="#FDBA74"/>
+    <!-- Unrolled portion -->
+    <rect x="20" y="90" width="180" height="20" rx="4" fill="#FB923C"/>
+    <rect x="20" y="92" width="180" height="4" rx="2" fill="#FDBA74" opacity="0.5"/>
+    <!-- Alignment lines on mat -->
+    <line x1="60" y1="95" x2="60" y2="105" stroke="#FDBA74" stroke-width="1.5"/>
+    <line x1="100" y1="95" x2="100" y2="105" stroke="#FDBA74" stroke-width="1.5"/>
+    <line x1="140" y1="95" x2="140" y2="105" stroke="#FDBA74" stroke-width="1.5"/>
+  </g>
+  <text x="200" y="300" text-anchor="middle" font-family="system-ui" font-size="16" fill="#EA580C" font-weight="600">Yoga Mat</text>
+</svg>

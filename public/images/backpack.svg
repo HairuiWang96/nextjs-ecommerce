@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#F0FDF4" rx="12"/>
+  <g transform="translate(120, 50)">
+    <!-- Straps -->
+    <path d="M40,60 Q30,30 40,10 L50,10 Q45,30 50,60" fill="#15803D"/>
+    <path d="M120,60 Q130,30 120,10 L110,10 Q115,30 110,60" fill="#15803D"/>
+    <!-- Main body -->
+    <rect x="20" y="50" width="120" height="180" rx="16" fill="#16A34A"/>
+    <!-- Top flap -->
+    <path d="M20,70 Q20,45 80,45 Q140,45 140,70" fill="#15803D"/>
+    <!-- Front pocket -->
+    <rect x="35" y="140" width="90" height="70" rx="10" fill="#22C55E"/>
+    <!-- Pocket zipper -->
+    <line x1="50" y1="142" x2="110" y2="142" stroke="#15803D" stroke-width="2"/>
+    <circle cx="110" cy="142" r="3" fill="#15803D"/>
+    <!-- Top handle -->
+    <path d="M60,48 Q80,35 100,48" fill="none" stroke="#15803D" stroke-width="5" stroke-linecap="round"/>
+    <!-- Buckle -->
+    <rect x="72" y="120" width="16" height="12" rx="3" fill="#BBF7D0"/>
+  </g>
+  <text x="200" y="340" text-anchor="middle" font-family="system-ui" font-size="16" fill="#16A34A" font-weight="600">Canvas Backpack</text>
+</svg>
