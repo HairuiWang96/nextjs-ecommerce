@@ -32,7 +32,7 @@ export const idempotencyStore = {
 // ============================================================
 // PROMO CODES — Dynamic Pricing
 // ============================================================
-// PATTERN: Typed map with known promo codes and their discount rules
+//! PATTERN: Typed map with known promo codes and their discount rules
 const promoCodes: Map<string, Discount> = new Map([
     ['SAVE10', { type: 'percentage', value: 10 }], // 10% off
     ['FLAT5', { type: 'fixed', value: 500 }], // $5.00 off
