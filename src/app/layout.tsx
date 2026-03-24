@@ -34,49 +34,47 @@
 //   useCart() only works inside a CartProvider.
 //   If NavBar was outside <Providers>, it would crash.
 //
-// WHY THIS FILE HAS NO "use client":
-//   This is a Server Component (the default in App Router).
-//   It can export `metadata` (title, description) which only works in Server Components.
-//   The client-side parts (Providers, NavBar) are imported as Client Components
-//   via "use client" in their own files — Next.js handles the boundary automatically.
+//! WHY THIS FILE HAS NO "use client":
+//!   This is a Server Component (the default in App Router).
+//!   It can export `metadata` (title, description) which only works in Server Components.
+//!   The client-side parts (Providers, NavBar) are imported as Client Components
+//!   via "use client" in their own files — Next.js handles the boundary automatically.
 // ============================================================
 
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Providers } from "./providers";
-import { NavBar } from "./navbar";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import { Providers } from './providers';
+import { NavBar } from './navbar';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+    variable: '--font-geist-sans',
+    subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+    variable: '--font-geist-mono',
+    subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "Next.js Ecommerce",
-  description: "Full-stack ecommerce app built with Next.js, React, and TypeScript",
+    title: 'Next.js Ecommerce',
+    description: 'Full-stack ecommerce app built with Next.js, React, and TypeScript',
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Providers>
-          <NavBar />
-          <main className="max-w-6xl mx-auto px-4 py-8">{children}</main>
-        </Providers>
-      </body>
-    </html>
-  );
+    return (
+        <html lang='en'>
+            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                <Providers>
+                    <NavBar />
+                    <main className='max-w-6xl mx-auto px-4 py-8'>{children}</main>
+                </Providers>
+            </body>
+        </html>
+    );
 }

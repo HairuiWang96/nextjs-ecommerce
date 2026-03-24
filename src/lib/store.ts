@@ -80,8 +80,8 @@ function seedProducts() {
             slug: 'wireless-bluetooth-headphones',
             status: 'active',
             variants: [
-                { id: 'var_1a', name: 'Black', sku: 'WBH-BLK', price: 7999, inventory: 50 },
-                { id: 'var_1b', name: 'White', sku: 'WBH-WHT', price: 7999, inventory: 30 },
+                { id: 'var_1a', name: 'Black', sku: 'WBH-BLK', price: 7999, compareAtPrice: 9999, inventory: 50 },
+                { id: 'var_1b', name: 'White', sku: 'WBH-WHT', price: 7999, compareAtPrice: 9999, inventory: 30 },
                 { id: 'var_1c', name: 'Navy', sku: 'WBH-NVY', price: 8499, inventory: 15 },
             ],
             images: ['/images/headphones.svg'],
@@ -115,7 +115,7 @@ function seedProducts() {
             slug: 'smart-home-hub',
             status: 'active',
             variants: [
-                { id: 'var_3a', name: 'Standard', sku: 'SHH-STD', price: 12999, inventory: 25 },
+                { id: 'var_3a', name: 'Standard', sku: 'SHH-STD', price: 12999, compareAtPrice: 14999, inventory: 25 },
                 { id: 'var_3b', name: 'Pro', sku: 'SHH-PRO', price: 19999, inventory: 10 },
             ],
             images: ['/images/hub.svg'],

@@ -2,7 +2,7 @@
 // Providers — The wrapper that enables shared state across the app
 // ============================================================
 //
-// WHY THIS FILE EXISTS:
+//! WHY THIS FILE EXISTS:
 //   layout.tsx is a Server Component (so it can export metadata).
 //   But CartProvider uses hooks (useState, useEffect) which need "use client".
 //   We can't put "use client" in layout.tsx without losing metadata support.
@@ -26,12 +26,12 @@
 //     </AuthProvider>
 // ============================================================
 
-"use client";
+'use client';
 
-import { CartProvider } from "@/context/CartContext";
+import { CartProvider } from '@/context/CartContext';
 
 // PATTERN: Providers wrapper — keeps layout.tsx clean
 // Add more providers here as needed (theme, auth, etc.)
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <CartProvider>{children}</CartProvider>;
+    return <CartProvider>{children}</CartProvider>;
 }
